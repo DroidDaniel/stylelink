@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { registerWithEmail, signInWithGoogle } from '@/lib/auth';
+import { uploadProfilePicture, uploadMultipleDocuments } from '@/lib/storage';
 
 export default function StylistRegister() {
   const [formData, setFormData] = useState({
@@ -17,6 +19,7 @@ export default function StylistRegister() {
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [documents, setDocuments] = useState<File[]>([]);
   const [profilePreview, setProfilePreview] = useState<string>('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -55,14 +58,52 @@ export default function StylistRegister() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In real app, upload files to Firebase Storage and save to backend
-    console.log('Registration data:', formData);
-    console.log('Profile picture:', profilePicture);
-    console.log('Documents:', documents);
-    alert('Registration successful! Your account is pending verification.');
-    router.push('/login/stylist');
+    setLoading(true);
+
+    try {
+      const { user } = await registerWithEmail(formData.email, formData.password, {
+        name: formData.name,
+        phone: formData.phone,
+        skills: formData.skills,
+        experience: formData.experience,
+        location: formData.location,
+        role: 'stylist'
+      });
+
+      // Upload profile picture if provided
+      let profilePictureUrl = '';
+      if (profilePicture) {
+        profilePictureUrl = await uploadProfilePicture(profilePicture, user.uid);
+      }
+
+      // Upload documents if provided
+      let documentUrls: string[] = [];
+      if (documents.length > 0) {
+        documentUrls = await uploadMultipleDocuments(documents, user.uid);
+      }
+
+      alert('Registration successful! Your account is pending verification.');
+      router.push('/login/stylist');
+    } catch (error: any) {
+      alert(error.message || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleRegister = async () => {
+    setLoading(true);
+    
+    try {
+      await signInWithGoogle();
+      router.push('/stylist/profile'); // Redirect to complete profile
+    } catch (error) {
+      alert('Registration failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,6 +112,19 @@ export default function StylistRegister() {
         <div className="text-center">
           <h1 className="title">Stylist Registration</h1>
           <p className="subtitle">Create your professional stylist account</p>
+        </div>
+
+        <button 
+          onClick={handleGoogleRegister} 
+          className="btn btn-outlined" 
+          style={{ width: '100%', marginBottom: '24px' }}
+          disabled={loading}
+        >
+          🔍 Continue with Google
+        </button>
+
+        <div style={{ margin: '16px 0', textAlign: 'center', color: 'var(--text-secondary)' }}>
+          or register with email
         </div>
 
         <form onSubmit={handleSubmit} className="form">
@@ -228,8 +282,8 @@ export default function StylistRegister() {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }}>
-            Create Account
+          <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }} disabled={loading}>
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 

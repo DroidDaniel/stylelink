@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { logout } from '@/lib/auth';
 
 export default function AdminDashboard() {
   const stats = {
@@ -14,17 +16,17 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is admin
-    const userType = localStorage.getItem('userType');
-    if (userType !== 'admin') {
+    if (!loading && (!user || profile?.role !== 'admin')) {
       router.push('/unauthorized');
     }
-  }, [router]);
+  }, [user, profile, loading, router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('userType');
+  const handleLogout = async () => {
+    await logout();
     router.push('/');
   };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="dashboard">
