@@ -1,19 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { logout } from '@/lib/auth';
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
+  const stats = {
     totalStylists: 12,
     pendingVerifications: 3,
     approvedStylists: 8,
     rejectedStylists: 1
-  });
-  const { user, profile, loading } = useAuth();
+  };
   const router = useRouter();
 
   useEffect(() => {

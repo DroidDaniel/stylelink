@@ -18,7 +18,7 @@ export default function StylistProfile() {
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [documents, setDocuments] = useState<File[]>([]);
   const [profilePreview, setProfilePreview] = useState<string>('/api/placeholder/120/120');
-  const [status, setStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [status] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [isEditable, setIsEditable] = useState(true);
   const router = useRouter();
 
@@ -29,7 +29,6 @@ export default function StylistProfile() {
       return;
     }
 
-    // In real app, fetch stylist data and check if approved
     if (status === 'approved') {
       setIsEditable(false);
     }
@@ -96,7 +95,7 @@ export default function StylistProfile() {
       </div>
 
       <div className="card card-large">
-        {!isEditable && (
+        {status === 'approved' && (
           <div style={{ 
             marginBottom: '24px', 
             padding: '16px', 

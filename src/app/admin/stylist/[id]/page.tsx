@@ -206,7 +206,7 @@ export default function StylistDetail() {
           }}>
             <h3 className="h6">Verification Actions</h3>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>
-              Review the stylist's information and documents before making a decision.
+              Review the stylist&apos;s information and documents before making a decision.
             </p>
             <div style={{ display: 'flex', gap: '16px' }}>
               <button 
