@@ -3,29 +3,31 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { logout } from '@/lib/auth';
 
 export default function StylistDashboard() {
-  const [stylistData, setStylistData] = useState({
-    name: 'John Doe',
-    status: 'pending' as 'pending' | 'approved' | 'rejected',
-    profileCompleteness: 70
-  });
+  const { user, profile, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const userType = localStorage.getItem('userType');
-    if (userType !== 'stylist') {
+    if (!loading && (!user || profile?.role !== 'stylist')) {
       router.push('/unauthorized');
     }
-  }, [router]);
+  }, [user, profile, loading, router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('userType');
+  const handleLogout = async () => {
+    await logout();
     router.push('/');
   };
 
+  if (loading) return <div>Loading...</div>;
+  if (!profile) return null;
+
+  const profileCompleteness = profile.name && profile.phone && profile.skills ? 100 : 70;
+
   const getStatusMessage = () => {
-    switch (stylistData.status) {
+    switch (profile.status || 'pending') {
       case 'pending':
         return 'Your account is pending verification by admin.';
       case 'approved':
@@ -51,8 +53,8 @@ export default function StylistDashboard() {
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-label">Verification Status</div>
-          <span className={`status-${stylistData.status}`}>
-            {stylistData.status.charAt(0).toUpperCase() + stylistData.status.slice(1)}
+          <span className={`status-${profile.status || 'pending'}`}>
+            {(profile.status || 'pending').charAt(0).toUpperCase() + (profile.status || 'pending').slice(1)}
           </span>
           <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
             {getStatusMessage()}
@@ -60,12 +62,12 @@ export default function StylistDashboard() {
         </div>
         
         <div className="stat-card">
-          <div className="stat-number">{stylistData.profileCompleteness}%</div>
+          <div className="stat-number">{profileCompleteness}%</div>
           <div className="stat-label">Profile Completed</div>
           <div style={{ width: '100%', backgroundColor: '#e5e7eb', borderRadius: '4px', height: '8px', marginTop: '0.5rem' }}>
             <div 
               style={{ 
-                width: `${stylistData.profileCompleteness}%`, 
+                width: `${profileCompleteness}%`, 
                 backgroundColor: '#2563eb', 
                 height: '100%', 
                 borderRadius: '4px' 
@@ -81,7 +83,7 @@ export default function StylistDashboard() {
           <Link href="/stylist/profile" className="btn btn-primary">
             Update Profile
           </Link>
-          {stylistData.profileCompleteness < 100 && (
+          {profileCompleteness < 100 && (
             <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
               Complete your profile to increase your chances of approval.
             </p>
@@ -89,7 +91,7 @@ export default function StylistDashboard() {
         </div>
       </div>
 
-      {stylistData.status === 'rejected' && (
+      {profile.status === 'rejected' && (
         <div className="card" style={{ borderLeft: '4px solid #dc2626' }}>
           <h3 style={{ color: '#dc2626', marginBottom: '0.5rem' }}>Account Rejected</h3>
           <p>Your account application was not approved. Please review your information and contact support if you believe this was an error.</p>

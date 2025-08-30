@@ -3,19 +3,38 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { signInWithEmail, signInWithGoogle } from '@/lib/auth';
 
 export default function StylistLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple validation - in real app, authenticate with backend
-    if (email && password) {
-      // Set stylist session (in real app, use proper auth)
-      localStorage.setItem('userType', 'stylist');
+    setLoading(true);
+    
+    try {
+      await signInWithEmail(email, password);
       router.push('/stylist/dashboard');
+    } catch (error) {
+      alert('Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    
+    try {
+      await signInWithGoogle();
+      router.push('/stylist/dashboard');
+    } catch (error) {
+      alert('Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -27,7 +46,7 @@ export default function StylistLogin() {
           <p className="subtitle">Sign in to your stylist account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="form">
+        <form onSubmit={handleEmailLogin} className="form">
           <div className="form-group">
             <label className="label">Email Address</label>
             <input
@@ -52,10 +71,23 @@ export default function StylistLogin() {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-            Sign In
+          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+
+        <div style={{ margin: '16px 0', textAlign: 'center', color: 'var(--text-secondary)' }}>
+          or
+        </div>
+
+        <button 
+          onClick={handleGoogleLogin} 
+          className="btn btn-outlined" 
+          style={{ width: '100%' }}
+          disabled={loading}
+        >
+          🔍 Continue with Google
+        </button>
 
         <div className="text-center" style={{ marginTop: '24px' }}>
           <p style={{ marginBottom: '8px' }}>
