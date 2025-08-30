@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
 
 export default function StylistProfile() {
   const [formData, setFormData] = useState({
@@ -19,23 +18,21 @@ export default function StylistProfile() {
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [documents, setDocuments] = useState<File[]>([]);
   const [profilePreview, setProfilePreview] = useState<string>('/api/placeholder/120/120');
+  const [status] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [isEditable, setIsEditable] = useState(true);
-  const { user, profile, loading } = useAuth();
   const router = useRouter();
 
-  if (loading) return <div>Loading...</div>;
-  if (!profile) return null;
-
   useEffect(() => {
-    if (!loading && (!user || profile?.role !== 'stylist')) {
+    const userType = localStorage.getItem('userType');
+    if (userType !== 'stylist') {
       router.push('/unauthorized');
       return;
     }
 
-    if (profile?.status === 'approved') {
+    if (status === 'approved') {
       setIsEditable(false);
     }
-  }, [user, profile, loading, router]);
+  }, [router, status]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -98,7 +95,7 @@ export default function StylistProfile() {
       </div>
 
       <div className="card card-large">
-        {!isEditable && (
+        {status === 'approved' && (
           <div style={{ 
             marginBottom: '24px', 
             padding: '16px', 
