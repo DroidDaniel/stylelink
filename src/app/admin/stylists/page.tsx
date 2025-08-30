@@ -57,7 +57,7 @@ export default function AdminStylists() {
           <label className="label">Filter by status</label>
           <select 
             value={filter} 
-            onChange={(e) => setFilter(e.target.value as any)}
+            onChange={(e) => setFilter(e.target.value as 'all' | 'pending' | 'approved' | 'rejected')}
             className="input"
             style={{ width: '200px' }}
           >

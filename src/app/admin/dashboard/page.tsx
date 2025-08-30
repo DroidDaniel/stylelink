@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
+  const stats = {
     totalStylists: 12,
     pendingVerifications: 3,
     approvedStylists: 8,
     rejectedStylists: 1
-  });
+  };
   const router = useRouter();
 
   useEffect(() => {
